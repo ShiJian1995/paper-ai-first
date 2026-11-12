@@ -1,0 +1,2 @@
+# Environment used for PDF extraction on 2026-11-12: CPython 3.14.3, Windows.
+PyMuPDF==1.28.2
