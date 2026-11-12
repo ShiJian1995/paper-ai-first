@@ -1,0 +1,83 @@
+{
+  "id": "iris-knn-20261112T130310Z-7d22464d",
+  "status": "succeeded",
+  "git": {
+    "commit": null,
+    "dirty": true
+  },
+  "config": {
+    "name": "iris-knn",
+    "command": [
+      "{python}",
+      "src/iris_baseline.py",
+      "--data",
+      "{data:uci-iris-v1}",
+      "--output",
+      "{output}",
+      "--seed",
+      "42"
+    ],
+    "sources": [
+      "src/iris_baseline.py"
+    ],
+    "datasets": [
+      "uci-iris-v1"
+    ],
+    "seed": 42,
+    "timeout_seconds": 30,
+    "comparison": {
+      "mode": "exact",
+      "abs_tol": 0,
+      "rel_tol": 0
+    },
+    "require_clean_git": false,
+    "purpose": "Infrastructure smoke experiment, not publication evidence for a new method",
+    "dependencies": "Python standard library only; interpreter recorded for each run"
+  },
+  "config_sha256": "3260ede9e242edba82a4dfcc7dea1d98a92461801fadc34384ca14b86dbcb9fb",
+  "inputs_sha256": {
+    "data/uci-iris-v1.data": "d11fe30213d36434a0879aab7cb00ce3c812eb7ba2495874438abff7b7b762e9",
+    "source/src/iris_baseline.py": "6a0acc70c9897fd7117766ac18fb7fcd92803dd4e6b8ed00f0def33fedf08dde"
+  },
+  "artifacts_sha256": {
+    "metrics.json": "adbe146a27fb552ed91f9d04539d60864124be4f1df7c57f1adef302d54ba9fb",
+    "predictions.csv": "1cb5481b2b790408f0dc6287b420ea46d232fd44d34ab994668b53f40aed6807",
+    "split.json": "f4c6596f6df9db328a92001d71d77543dd71faac3a620c29bef250500dd87e5e"
+  },
+  "metrics": {
+    "accuracy": 0.9333333333333333,
+    "majority_accuracy": 0.3333333333333333,
+    "n_test": 45,
+    "n_train": 105
+  },
+  "started_at": "2026-11-12T13:03:10.613690+00:00",
+  "finished_at": "2026-11-12T13:03:12.462377+00:00",
+  "replay_of": null,
+  "environment": {
+    "python": "3.14.3 (tags/v3.14.3:323c59a, Feb  3 2026, 16:04:56) [MSC v.1944 64 bit (AMD64)]",
+    "platform": "Windows-10-10.0.19045-SP0",
+    "machine": "AMD64"
+  },
+  "datasets": {
+    "uci-iris-v1": {
+      "id": "uci-iris-v1",
+      "sha256": "d11fe30213d36434a0879aab7cb00ce3c812eb7ba2495874438abff7b7b762e9",
+      "bytes": 3738,
+      "retrieved_at": "2026-11-12T13:03:10.601626+00:00",
+      "final_url": "https://archive.ics.uci.edu/static/public/53/iris.zip",
+      "etag": null,
+      "manifest": {
+        "id": "uci-iris-v1",
+        "url": "https://archive.ics.uci.edu/static/public/53/iris.zip",
+        "source_page": "https://archive.ics.uci.edu/dataset/53/iris",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0/",
+        "kind": "benchmark",
+        "description": "Public UCI Iris archive, DOI 10.24432/C56C76. Workflow demonstration only, not a research contribution. Uses corrected bezdekIris.data unchanged.",
+        "sha256": null,
+        "max_bytes": 1000000
+      },
+      "checksum_origin": "first-download-local-pin"
+    }
+  }
+}

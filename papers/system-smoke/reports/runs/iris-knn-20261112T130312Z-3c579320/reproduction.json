@@ -1,0 +1,24 @@
+{
+  "original": "iris-knn-20261112T130310Z-7d22464d",
+  "rerun": "iris-knn-20261112T130312Z-3c579320",
+  "at": "2026-11-12T13:03:13.135706+00:00",
+  "passed": true,
+  "metrics_equal": true,
+  "artifacts_equal": true,
+  "comparison": {
+    "mode": "exact",
+    "abs_tol": 0,
+    "rel_tol": 0
+  },
+  "scope": "snapshot replay on recorded environments; not independent scientific validation",
+  "original_environment": {
+    "python": "3.14.3 (tags/v3.14.3:323c59a, Feb  3 2026, 16:04:56) [MSC v.1944 64 bit (AMD64)]",
+    "platform": "Windows-10-10.0.19045-SP0",
+    "machine": "AMD64"
+  },
+  "rerun_environment": {
+    "python": "3.14.3 (tags/v3.14.3:323c59a, Feb  3 2026, 16:04:56) [MSC v.1944 64 bit (AMD64)]",
+    "platform": "Windows-10-10.0.19045-SP0",
+    "machine": "AMD64"
+  }
+}
