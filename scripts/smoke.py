@@ -19,6 +19,8 @@ def main():
     record = data.fetch(root, root / "data/manifests/iris.json")
     run = experiments.run(root, root / "configs/iris.json")
     report = experiments.reproduce(root, run["id"])
+    for key in ("original_environment", "rerun_environment"):
+        report[key].pop("executable", None)
     output = {"paper": paper_id, "dataset_sha256": record["sha256"], "metrics": run["metrics"], "reproduction": report}
     save(root / "reports/smoke.json", output)
     print(__import__("json").dumps(output, ensure_ascii=False, indent=2))

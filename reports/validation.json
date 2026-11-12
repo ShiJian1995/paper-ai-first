@@ -1,0 +1,24 @@
+{
+  "local_tests": 25,
+  "local_tests_passed": true,
+  "upstream_skills_verified": 4,
+  "custom_skills_validated": 4,
+  "real_public_data_download": true,
+  "crossref_live_search": true,
+  "dataset_sha256": "d11fe30213d36434a0879aab7cb00ce3c812eb7ba2495874438abff7b7b762e9",
+  "default_environment_metrics": {
+    "accuracy": 0.9333333333333333,
+    "majority_accuracy": 0.3333333333333333,
+    "n_test": 45,
+    "n_train": 105
+  },
+  "fresh_venv_metrics": {
+    "accuracy": 0.9333333333333333,
+    "majority_accuracy": 0.3333333333333333,
+    "n_test": 45,
+    "n_train": 105
+  },
+  "cross_environment_metrics_equal": true,
+  "replay_artifact_hashes_equal": true,
+  "scope": "System demo only, not a new research result; same Python version and host OS"
+}

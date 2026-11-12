@@ -6,7 +6,7 @@ __pycache__/
 .env.*
 !.env.example
 data/raw/
-runs/
+/runs/
 workspace.local.json
 papers/*/research/
 papers/*/data/raw/
