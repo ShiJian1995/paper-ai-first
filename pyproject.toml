@@ -1,0 +1,9 @@
+[project]
+name = "paper-research-workflow"
+version = "0.1.0"
+description = "Codex-driven research workflow with evidence, data provenance and reproducible experiments"
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.unittest]
+start-directory = "tests"

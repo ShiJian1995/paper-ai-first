@@ -1,0 +1,12 @@
+{
+  "name": "iris-knn",
+  "command": ["{python}", "src/iris_baseline.py", "--data", "{data:uci-iris-v1}", "--output", "{output}", "--seed", "42"],
+  "sources": ["src/iris_baseline.py"],
+  "datasets": ["uci-iris-v1"],
+  "seed": 42,
+  "timeout_seconds": 30,
+  "comparison": {"mode": "exact", "abs_tol": 0, "rel_tol": 0},
+  "require_clean_git": false,
+  "purpose": "Infrastructure smoke experiment, not publication evidence for a new method",
+  "dependencies": "Python standard library only; interpreter recorded for each run"
+}
