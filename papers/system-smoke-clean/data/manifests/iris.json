@@ -1,0 +1,11 @@
+{
+  "id": "uci-iris-v1",
+  "url": "https://archive.ics.uci.edu/static/public/53/iris.zip",
+  "source_page": "https://archive.ics.uci.edu/dataset/53/iris",
+  "license": "CC BY 4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/",
+  "kind": "benchmark",
+  "description": "Public UCI Iris archive, DOI 10.24432/C56C76. Workflow demonstration only, not a research contribution. Uses corrected bezdekIris.data unchanged.",
+  "sha256": null,
+  "max_bytes": 1000000
+}
