@@ -55,6 +55,10 @@ def verify_evidence(root, evidence_id):
     source = inside(root, record["source_path"])
     if not source.is_file() or digest(source) != record["source_sha256"]:
         raise WorkflowError(f"Evidence source missing or changed: {evidence_id}")
+    if record.get("paper_id"):
+        paper = verify_fulltext(root, record["paper_id"])
+        if paper["source_sha256"] != record["source_sha256"]:
+            raise WorkflowError(f"Paper evidence refers to a different source version: {evidence_id}")
     return record
 
 
@@ -103,6 +107,13 @@ def verify_paper(root, paper_id):
     source = inside(root, record["source_path"])
     if not source.is_file() or digest(source) != record["source_sha256"]:
         raise WorkflowError(f"Paper source missing or modified: {paper_id}")
+    return record
+
+
+def verify_fulltext(root, paper_id):
+    record = verify_paper(root, paper_id)
+    if record["reading_level"] != "full_text":
+        raise WorkflowError(f"Completed full-text analysis required; screening lead only: {paper_id}")
     return record
 
 
@@ -173,9 +184,9 @@ def audit_corpus(root, enforce=False):
         age = (today - date.fromisoformat(trend["as_of"])).days
         if age < 0 or age > min(30, policy.get("trend_max_age_days", 30)):
             raise WorkflowError("Trend analysis must be current (within 30 days)")
-        valid_ids = {r["id"] for r in records}
+        valid_ids = {r["id"] for r in records if r["reading_level"] == "full_text"}
         for entry in trend["hot_topics"]:
             required(entry, ["topic", "evidence_paper_ids", "recent_search_source", "reason"], "hot topic")
-            if not set(entry["evidence_paper_ids"]).issubset(valid_ids):
-                raise WorkflowError("Hot-topic references must exist in the analyzed corpus")
+            if not entry["evidence_paper_ids"] or not set(entry["evidence_paper_ids"]).issubset(valid_ids):
+                raise WorkflowError("Hot-topic references require completed full-text analyses")
     return report

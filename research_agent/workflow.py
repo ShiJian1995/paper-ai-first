@@ -59,9 +59,13 @@ def check_gate(root, stage):
         audit_corpus(root, enforce=True)
         summary = load(root / "literature/selection.json")
         required(summary, ["candidates", "selected_topic", "selection_reason", "evidence_ids", "data_sources", "gap_paper_ids", "counterevidence_paper_ids"], "topic selection")
-        from .literature import verify_paper
-        for paper_id in summary["gap_paper_ids"] + summary["counterevidence_paper_ids"]:
-            verify_paper(root, paper_id)
+        from .literature import verify_fulltext
+        paper_ids = set(summary["gap_paper_ids"] + summary["counterevidence_paper_ids"])
+        for item in summary["candidates"] + summary.get("excluded_or_deferred", []):
+            paper_ids.update(item.get("closest_precedents", []))
+            paper_ids.update(item.get("evidence_paper_ids", []))
+        for paper_id in paper_ids:
+            verify_fulltext(root, paper_id)
         for evidence_id in summary["evidence_ids"]:
             verify_evidence(root, evidence_id)
     elif stage == "protocol":

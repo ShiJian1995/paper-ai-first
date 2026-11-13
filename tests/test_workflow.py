@@ -192,6 +192,17 @@ class WorkflowTests(unittest.TestCase):
         with self.assertRaises(FileNotFoundError):
             literature.audit_corpus(self.root, enforce=True)
 
+    def test_abstract_cannot_decide_candidate_even_with_passing_corpus(self):
+        self.paper(1)
+        self.paper(2, reading_level="abstract")
+        summary = {"selected_topic": "A", "selection_reason": "fixture", "gap_paper_ids": ["paper-1"],
+                   "counterevidence_paper_ids": ["paper-1"], "evidence_ids": ["fixture"],
+                   "data_sources": ["fixture"], "candidates": [{"closest_precedents": ["paper-1"]}],
+                   "excluded_or_deferred": [{"evidence_paper_ids": ["paper-2"]}]}
+        save(self.root / "literature/selection.json", summary)
+        with patch("research_agent.workflow.audit_corpus"), self.assertRaisesRegex(WorkflowError, "screening lead only"):
+            workflow.check_gate(self.root, "literature")
+
     def test_literature_floor_cannot_be_lowered_in_config(self):
         settings = load(self.root / "research/project.json")
         settings["literature_policy"] = {"min_analyzed_papers": 1, "min_fulltext_papers": 1}
