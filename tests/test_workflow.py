@@ -192,6 +192,31 @@ class WorkflowTests(unittest.TestCase):
         with self.assertRaises(FileNotFoundError):
             literature.audit_corpus(self.root, enforce=True)
 
+    def test_imprecise_publication_dates_are_not_forced_into_trend_window(self):
+        from datetime import date
+        self.assertEqual(literature.publication_window("2025-11", date(2026,11,13)), "date_spans_windows")
+        self.assertEqual(literature.publication_window("2023", date(2026,11,13)), "earlier")
+
+    def test_journal_floor_excludes_conferences_adjacent_fields_and_abstracts(self):
+        settings = load(self.root / "research/project.json")
+        settings["literature_policy"].update(min_domain_journal_fulltexts=100, eligible_journal_scopes=["PF"])
+        save(self.root / "research/project.json", settings)
+        rows=[]
+        for i, (scope, level, kind) in enumerate([("PF","full_text","journal-article"),
+                ("PF","full_text","proceedings-article"), ("OPF","full_text","journal-article"),
+                ("PF","abstract","journal-article")]):
+            item=self.paper(i,scope_group=scope,reading_level=level)
+            doi=f"10.1000/case-{i}"
+            save(self.root/f"literature/meta-{i}.json",{"items":[{"DOI":doi,"type":kind}]})
+            rows.append(dict(id=item["id"],study=item["canonical_work_id"],read_version=item["source_path"],
+                             doi=doi,category="Electrical",quartile="Q1",tier=2,category_quartiles_pages=[["Electrical","Q1",1]],
+                             metadata=f"meta-{i}.json"))
+        save(self.root/"literature/venue-priority.json",{"rows":rows})
+        report=literature.audit_corpus(self.root)
+        self.assertEqual((report["eligible_domain_journals"],report["domain_journal_shortfall"]),(1,99))
+        with self.assertRaisesRegex(WorkflowError,"domain Q1/Q2 journals=1/100"):
+            literature.audit_corpus(self.root,enforce=True)
+
     def test_abstract_cannot_decide_candidate_even_with_passing_corpus(self):
         self.paper(1)
         self.paper(2, reading_level="abstract")

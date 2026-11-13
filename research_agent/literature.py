@@ -4,6 +4,7 @@ import urllib.parse
 import uuid
 from datetime import date, datetime, timedelta, timezone
 import re
+from calendar import monthrange
 from .common import WorkflowError, digest, event, identifier, inside, load, now, request_bytes, required, save
 
 
@@ -69,12 +70,32 @@ def normalize_title(title):
     return "".join(c for c in title.casefold() if c.isalnum())
 
 
+def publication_interval(value):
+    if re.fullmatch(r"\d{4}", value):
+        return date(int(value), 1, 1), date(int(value), 12, 31)
+    if re.fullmatch(r"\d{4}-\d{2}", value):
+        y,m=map(int,value.split("-"))
+        return date(y,m,1),date(y,m,monthrange(y,m)[1])
+    day=date.fromisoformat(value)
+    return day,day
+
+
+def publication_window(value, as_of):
+    first,last=publication_interval(value)
+    def window(d):
+        age=(as_of-d).days
+        return "last_365_days" if age<365 else "previous_365_days" if age<730 else "earlier"
+    if first>as_of:
+        return "future"
+    return window(first) if window(first)==window(min(last,as_of)) else "date_spans_windows"
+
+
 def validate_paper(record):
     required(record, ["id", "canonical_work_id", "title", "published_date", "source_url", "source_path", "reading_level", "analysis", "topics", "checked_by"], "paper analysis")
     identifier(record["id"])
     if record["reading_level"] not in ("full_text", "abstract"):
         raise WorkflowError("reading_level must be full_text or abstract")
-    date.fromisoformat(record["published_date"])
+    publication_interval(record["published_date"])
     required(record["analysis"], ANALYSIS_FIELDS, "substantive paper analysis")
     for field in ANALYSIS_FIELDS:
         value = record["analysis"][field]
@@ -115,6 +136,40 @@ def verify_fulltext(root, paper_id):
     if record["reading_level"] != "full_text":
         raise WorkflowError(f"Completed full-text analysis required; screening lead only: {paper_id}")
     return record
+
+
+def _domain_journals(root, policy, groups):
+    """Join verified full texts to journal metadata. Never count a raw search result."""
+    venue_path = root / "literature/venue-priority.json"
+    venue = load(venue_path) if venue_path.is_file() else {}
+    index = {r["id"]: r for r in venue.get("rows", [])}
+    accepted, used = [], set()
+    scopes = set(policy["eligible_journal_scopes"])
+    excluded_ids = set(policy.get("journal_scope_exclusions", {}))
+    for family in groups:
+        for paper in family:
+            row = index.get(paper["id"], {})
+            q = row.get("quartile")
+            if (paper["id"] in excluded_ids or q not in ("Q1","Q2") or paper.get("scope_group") not in scopes or paper["reading_level"] != "full_text"
+                    or row.get("tier") != {"Q1": 2, "Q2": 3}.get(q, -1)
+                    or row.get("study") != paper["canonical_work_id"]
+                    or row.get("read_version") != paper["source_path"]
+                    or not any(c == row.get("category") and k == q and page > 0
+                               for c, k, page in row.get("category_quartiles_pages", []))):
+                continue
+            doi = row.get("doi", "").casefold().strip()
+            if not doi or doi in used or not row.get("metadata"):
+                continue
+            source = inside(root / "literature", row["metadata"])
+            if not source.is_file() or not any(
+                x.get("type") == "journal-article" and x.get("DOI","").casefold() == doi
+                for x in load(source).get("items", [])
+            ):
+                continue
+            accepted.append({"id":paper["id"], "doi":doi, "quartile":q})
+            used.add(doi)
+            break
+    return accepted
 
 
 def audit_corpus(root, enforce=False):
@@ -161,10 +216,10 @@ def audit_corpus(root, enforce=False):
     today = datetime.now(timezone(timedelta(hours=8))).date()
     recent, prior = {}, {}
     for record in records:
-        age = (today - date.fromisoformat(record["published_date"])).days
-        if age < 0:
+        period = publication_window(record["published_date"], today)
+        if period == "future":
             errors.append({"id": record["id"], "error": "Publication date is in the future"})
-        target = recent if 0 <= age < 365 else prior if 365 <= age < 730 else None
+        target = recent if period == "last_365_days" else prior if period == "previous_365_days" else None
         if target is not None:
             for topic in set(record["topics"]):
                 target[topic] = target.get(topic, 0) + 1
@@ -175,10 +230,17 @@ def audit_corpus(root, enforce=False):
               "invalid_records": errors, "topic_counts_in_collected_corpus": trends,
               "limitations": "Counts describe this corpus, not field-wide popularity. Semantic analysis and cross-version linkage require review.",
               "quantity_passed": len(records) >= minimum and full_count >= fulltext_min and not errors}
+    if policy.get("min_domain_journal_fulltexts"):
+        threshold = max(100, policy["min_domain_journal_fulltexts"])
+        eligible = _domain_journals(root, policy, grouped.values())
+        report.update(required_domain_journals=threshold, eligible_domain_journals=len(eligible),
+                      domain_journal_shortfall=max(0, threshold-len(eligible)), eligible_journal_records=eligible)
+        report["quantity_passed"] &= len(eligible) >= threshold
     save(root / "literature/corpus-audit.json", report)
     if enforce:
         if not report["quantity_passed"]:
-            raise WorkflowError(f"Literature gate: {len(records)} unique analyzed / {full_count} full-text; need at least {minimum}/{fulltext_min}; invalid={len(errors)}")
+            journal_msg = (f"; domain Q1/Q2 journals={len(eligible)}/{threshold}" if policy.get("min_domain_journal_fulltexts") else "")
+            raise WorkflowError(f"Literature gate: {len(records)} unique analyzed / {full_count} full-text; need at least {minimum}/{fulltext_min}; invalid={len(errors)}{journal_msg}")
         trend = load(root / "literature/trends.json")
         required(trend, ["as_of", "search_strategy", "coverage", "hot_topics", "unresolved_problems", "counterevidence", "sources", "limitations"], "current research trends")
         age = (today - date.fromisoformat(trend["as_of"])).days
