@@ -12,7 +12,7 @@ from datetime import date
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT.parents[1]))
-from research_agent.literature import add_paper, audit_corpus, verify_paper, validate_paper
+from research_agent.literature import add_paper, audit_corpus, verify_paper, validate_paper, publication_window
 
 
 def main():
@@ -46,8 +46,7 @@ def main():
     scope = collections.Counter()
     as_of = date.fromisoformat(audit['as_of'])
     for item in unique:
-        days = (as_of-date.fromisoformat(item['published_date'])).days
-        periods['last_365_days' if days < 365 else 'previous_365_days' if days < 730 else 'earlier'] += 1
+        periods[publication_window(item['published_date'],as_of)] += 1
         scope[item.get('scope_group', 'PF-core-or-enabling' if 'PF' in item['topics'] else 'OPF-adjacent')] += 1
     retrieved = json.loads((ROOT/'literature/retrieved-sources.json').read_text(encoding='utf-8'))
     unread = sorted(set(retrieved)-{r['id'] for r in records})
