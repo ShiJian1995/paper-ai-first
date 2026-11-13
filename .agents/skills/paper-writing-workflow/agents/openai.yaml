@@ -1,0 +1,4 @@
+interface:
+  display_name: "论文写作"
+  short_description: "根据论文阶段调用文献核验、章节写作、实验结果检查与返修技能"
+  default_prompt: "用 $paper-writing-workflow 根据当前论文和已有材料完成本次写作任务。"

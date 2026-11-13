@@ -5,6 +5,7 @@
 ## 论文隔离与入口
 
 - 执行论文研究、选题、实验、写作或修改时，使用 `$research-orchestrator`。
+- 论文写作与返修任务由 `$paper-writing-workflow` 按阶段选择子技能。若技能列表尚未显示该入口，直接读取 [论文写作流程](research_agent/skills/paper-writing-workflow/SKILL.md)；已有论文继续沿用原 ID 与阶段记录。
 - 先运行 `python paper.py list`。每篇论文有唯一 ID，全部研究文件放在 `papers/<id>/`。
 - 所有研究命令显式使用 `python paper.py --paper <id> ...`，不要依赖一个全局“当前论文”。
 - 用户明确指定已有论文时继续该 ID；新论文使用新 ID。若“继续”有多个合理目标，询问一次，不猜测。
